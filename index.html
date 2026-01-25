@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titanic Dataset EDA Tool</title>
+    <!-- CDN Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.1.1/dist/chartjs-chart-matrix.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #3498db;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .file-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .file-group {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .file-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .file-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-export {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        .btn-export:hover {
+            background-color: #8e44ad;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background-color: #d5f4e6;
+            color: #27ae60;
+            border-left: 4px solid #27ae60;
+            display: block;
+        }
+        
+        .status.error {
+            background-color: #fadbd8;
+            color: #e74c3c;
+            border-left: 4px solid #e74c3c;
+            display: block;
+        }
+        
+        .data-preview {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .stat-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .stat-content {
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .deployment-note {
+            background-color: #fff8e1;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 30px;
+            font-size: 0.9em;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .deployment-note h3 {
+            margin-top: 0;
+            color: #ff9800;
+        }
+        
+        .columns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .column-info {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .column-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .column-type {
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .file-inputs, .controls {
+                flex-direction: column;
+            }
+            
+            .file-group {
+                min-width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Titanic Dataset Exploratory Data Analysis</h1>
+            <p class="subtitle">Interactive client-side EDA tool for Titanic dataset from Kaggle</p>
+        </header>
+        
+        <div class="section">
+            <h2 class="section-title">1. Data Loading</h2>
+            <div class="file-inputs">
+                <div class="file-group">
+                    <label for="train-file">Train Data (train.csv with Survived column)</label>
+                    <input type="file" id="train-file" accept=".csv">
+                </div>
+                <div class="file-group">
+                    <label for="test-file">Test Data (test.csv without Survived column)</label>
+                    <input type="file" id="test-file" accept=".csv">
+                </div>
+            </div>
+            <div class="controls">
+                <button id="load-data" class="btn-primary">Load and Merge Datasets</button>
+                <button id="run-eda" class="btn-secondary" disabled>Run Full EDA Analysis</button>
+                <button id="export-data" class="btn-export" disabled>Export Merged Data as CSV</button>
+                <button id="export-stats" class="btn-export" disabled>Export Statistics as JSON</button>
+            </div>
+            <div id="status" class="status"></div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">2. Dataset Overview</h2>
+            <div id="dataset-overview">
+                <p>Load train.csv and test.csv to see dataset overview here.</p>
+            </div>
+            <div id="data-preview" class="data-preview">
+                <!-- Data preview table will be inserted here -->
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">3. Missing Values Analysis</h2>
+            <div id="missing-values">
+                <p>Run EDA analysis to see missing values visualization here.</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="missing-values-chart"></canvas>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">4. Statistical Summaries</h2>
+            <div id="statistical-summaries">
+                <p>Run EDA analysis to see statistical summaries here.</p>
+            </div>
+            <div id="stats-container" class="stats-grid">
+                <!-- Statistical cards will be inserted here -->
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">5. Visualizations</h2>
+            <div id="visualizations">
+                <div class="chart-container">
+                    <canvas id="sex-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="pclass-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="embarked-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="age-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="fare-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="correlation-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="deployment-note">
+            <h3>Deployment Note</h3>
+            <p>This app can be deployed by creating a public GitHub repository, committing <code>index.html</code> and <code>app.js</code>, enabling GitHub Pages on the main branch, and opening the generated URL. All processing happens client-side, so no backend is required.</p>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
