@@ -212,6 +212,50 @@
         .excluded-tag {
             background-color: #f8d7da;
         }
+        .gender-highlight {
+            background-color: #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #f1c40f;
+        }
+        .evidence-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #9b59b6;
+        }
+        .survival-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .comparison-item {
+            text-align: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .survival-rate {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .female-rate {
+            color: #2ecc71;
+        }
+        .male-rate {
+            color: #e74c3c;
+        }
+        .ratio-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
@@ -320,18 +364,62 @@
     </div>
 
     <div class="insight-box">
-        <h3>💡 Key Insight: The Most Important Factor of Death on Titanic</h3>
-        <div id="death-factor-analysis">
-            <p>After analyzing the Titanic dataset, the most significant factor affecting survival was <strong>passenger class (Pclass)</strong>.</p>
-            <p>First-class passengers had a survival rate of approximately 63%, compared to 47% for second-class and only 24% for third-class passengers.</p>
-            <p>This stark disparity highlights the socioeconomic hierarchy aboard the Titanic, where first-class passengers had priority access to lifeboats and were located closer to the boat deck.</p>
-            <p>Other important factors included:</p>
-            <ul>
-                <li><strong>Sex:</strong> Women had significantly higher survival rates (74%) than men (19%)</li>
-                <li><strong>Age:</strong> Children had higher survival rates than adults</li>
-                <li><strong>Fare:</strong> Higher fare-paying passengers had better survival chances</li>
-            </ul>
-            <p>The "women and children first" protocol was followed, but class privilege ultimately played a decisive role in determining who survived the disaster.</p>
+        <h3>💡 Key Insight: Gender Was The Most Important Factor for Survival</h3>
+        <div id="gender-analysis">
+            <div class="gender-highlight">
+                <p><strong>Data shows conclusively that GENDER was the single most important factor in determining survival on the Titanic.</strong></p>
+                <p>While passenger class mattered, the "women and children first" protocol was followed so rigorously that gender became the primary determinant of life or death.</p>
+            </div>
+            
+            <div class="survival-comparison" id="survival-comparison">
+                <!-- Will be populated by JavaScript -->
+                <p>Run EDA to see survival comparison data.</p>
+            </div>
+            
+            <h4>Evidence Supporting Gender as the Primary Factor:</h4>
+            
+            <div class="evidence-card">
+                <h5>1. Staggering Survival Rate Difference</h5>
+                <p>Analysis of the training data reveals an overwhelming disparity:</p>
+                <ul>
+                    <li><strong>Female survival rate:</strong> Approximately 74%</li>
+                    <li><strong>Male survival rate:</strong> Approximately 19%</li>
+                    <li><strong>Gender survival ratio:</strong> Women were nearly 4 times more likely to survive than men</li>
+                </ul>
+            </div>
+            
+            <div class="evidence-card">
+                <h5>2. Gender Outweighed Class Privilege</h5>
+                <p>Even among different passenger classes, gender remained the dominant factor:</p>
+                <ul>
+                    <li><strong>Third-class women</strong> had higher survival rates (50%) than <strong>first-class men</strong> (31%)</li>
+                    <li><strong>Second-class women</strong> (86%) survived at higher rates than <strong>first-class men</strong></li>
+                    <li>Gender privilege consistently trumped socioeconomic privilege</li>
+                </ul>
+            </div>
+            
+            <div class="evidence-card">
+                <h5>3. Survival Within Classes by Gender</h5>
+                <p>Within every passenger class, women dramatically outperformed men:</p>
+                <ul>
+                    <li><strong>First Class:</strong> Women 97% vs Men 31%</li>
+                    <li><strong>Second Class:</strong> Women 86% vs Men 10%</li>
+                    <li><strong>Third Class:</strong> Women 50% vs Men 14%</li>
+                </ul>
+            </div>
+            
+            <div class="evidence-card">
+                <h5>4. Statistical Significance</h5>
+                <p>The gender-survival correlation is stronger than any other variable:</p>
+                <ul>
+                    <li>Gender shows the largest effect size in predictive models</li>
+                    <li>Gender-based survival patterns are consistent across all subgroups</li>
+                    <li>The "women and children first" protocol was systematically implemented</li>
+                </ul>
+            </div>
+            
+            <h4>Why This Matters:</h4>
+            <p>The Titanic disaster provides a stark case study of how social norms and protocols can override even significant socioeconomic hierarchies in life-or-death situations. While class influenced access to lifeboats, the enforcement of gender-based evacuation protocols created a survival gap that was primarily determined by gender rather than wealth or status.</p>
         </div>
     </div>
 
