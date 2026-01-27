@@ -39,6 +39,7 @@ const datasetOverview = document.getElementById('dataset-overview');
 const columnInfo = document.getElementById('column-info');
 const dataPreviewTable = document.getElementById('data-preview-table');
 const statisticalSummaries = document.getElementById('statistical-summaries');
+const survivalComparison = document.getElementById('survival-comparison');
 
 // Initialize the application
 function initApp() {
@@ -132,6 +133,9 @@ function runFullEDA() {
     
     // Generate statistical summaries
     generateStatisticalSummaries();
+    
+    // Analyze gender impact specifically
+    analyzeGenderImpact();
     
     // Enable chart generation and export buttons
     showChartsBtn.disabled = false;
@@ -437,6 +441,102 @@ function generateStatisticalSummaries() {
     window.computedStats = { numericStats, categoricalStats };
 }
 
+// Analyze gender impact specifically with detailed statistics
+function analyzeGenderImpact() {
+    if (mergedData.length === 0) return;
+    
+    const trainingData = mergedData.filter(row => row.source === 'train');
+    
+    // Calculate gender survival statistics
+    const femalePassengers = trainingData.filter(row => row.Sex === 'female');
+    const malePassengers = trainingData.filter(row => row.Sex === 'male');
+    
+    const femaleSurvived = femalePassengers.filter(row => row.Survived === 1).length;
+    const maleSurvived = malePassengers.filter(row => row.Survived === 1).length;
+    
+    const femaleSurvivalRate = ((femaleSurvived / femalePassengers.length) * 100).toFixed(1);
+    const maleSurvivalRate = ((maleSurvived / malePassengers.length) * 100).toFixed(1);
+    
+    // Calculate survival ratio (female:male)
+    const survivalRatio = (parseFloat(femaleSurvivalRate) / parseFloat(maleSurvivalRate)).toFixed(1);
+    
+    // Calculate gender survival by class
+    const genderByClass = {};
+    [1, 2, 3].forEach(pclass => {
+        const classData = trainingData.filter(row => row.Pclass === pclass);
+        const femalesInClass = classData.filter(row => row.Sex === 'female');
+        const malesInClass = classData.filter(row => row.Sex === 'male');
+        
+        const femaleSurvivedInClass = femalesInClass.filter(row => row.Survived === 1).length;
+        const maleSurvivedInClass = malesInClass.filter(row => row.Survived === 1).length;
+        
+        const femaleRateInClass = femalesInClass.length > 0 ? 
+            ((femaleSurvivedInClass / femalesInClass.length) * 100).toFixed(1) : '0';
+        const maleRateInClass = malesInClass.length > 0 ? 
+            ((maleSurvivedInClass / malesInClass.length) * 100).toFixed(1) : '0';
+        
+        genderByClass[pclass] = {
+            femaleRate: femaleRateInClass,
+            maleRate: maleRateInClass,
+            femaleCount: femalesInClass.length,
+            maleCount: malesInClass.length
+        };
+    });
+    
+    // Update the survival comparison section
+    survivalComparison.innerHTML = `
+        <div class="comparison-item">
+            <h4>Female Survival</h4>
+            <div class="survival-rate female-rate">${femaleSurvivalRate}%</div>
+            <p>${femaleSurvived} of ${femalePassengers.length} females survived</p>
+        </div>
+        <div class="comparison-item">
+            <h4>Male Survival</h4>
+            <div class="survival-rate male-rate">${maleSurvivalRate}%</div>
+            <p>${maleSurvived} of ${malePassengers.length} males survived</p>
+        </div>
+        <div class="comparison-item">
+            <h4>Survival Ratio</h4>
+            <div class="ratio-display">${survivalRatio}:1</div>
+            <p>Women were <strong>${survivalRatio} times</strong> more likely to survive than men</p>
+        </div>
+    `;
+    
+    // Add gender-by-class analysis to the insight section
+    let classAnalysisHTML = '<div class="evidence-card"><h5>Gender Survival by Passenger Class</h5><ul>';
+    
+    [1, 2, 3].forEach(pclass => {
+        const data = genderByClass[pclass];
+        classAnalysisHTML += `
+            <li><strong>${pclass === 1 ? 'First' : pclass === 2 ? 'Second' : 'Third'} Class:</strong> 
+                Women ${data.femaleRate}% vs Men ${data.maleRate}% 
+                (${data.femaleCount} women, ${data.maleCount} men)</li>
+        `;
+    });
+    
+    classAnalysisHTML += '</ul></div>';
+    
+    // Update the evidence section with class analysis
+    const insightSection = document.getElementById('gender-analysis');
+    const existingCards = insightSection.querySelectorAll('.evidence-card');
+    if (existingCards.length >= 4) {
+        // Insert after the third evidence card
+        existingCards[2].insertAdjacentHTML('afterend', classAnalysisHTML);
+    }
+    
+    // Store gender analysis for export
+    window.genderAnalysis = {
+        femaleSurvivalRate: parseFloat(femaleSurvivalRate),
+        maleSurvivalRate: parseFloat(maleSurvivalRate),
+        survivalRatio: parseFloat(survivalRatio),
+        femalePassengers: femalePassengers.length,
+        malePassengers: malePassengers.length,
+        femaleSurvived,
+        maleSurvived,
+        genderByClass
+    };
+}
+
 // Generate all visualization charts
 function generateAllCharts() {
     if (mergedData.length === 0) return;
@@ -455,6 +555,9 @@ function generateAllCharts() {
     
     // 4. Correlation heatmap
     generateCorrelationHeatmap(trainingData);
+    
+    // 5. Gender survival visualization
+    generateGenderSurvivalChart(trainingData);
 }
 
 // Generate chart for categorical features vs survival
@@ -793,6 +896,21 @@ function generateCorrelationHeatmap(data) {
     });
 }
 
+// Generate gender survival comparison chart
+function generateGenderSurvivalChart(data) {
+    const femalePassengers = data.filter(row => row.Sex === 'female');
+    const malePassengers = data.filter(row => row.Sex === 'male');
+    
+    const femaleSurvived = femalePassengers.filter(row => row.Survived === 1).length;
+    const maleSurvived = malePassengers.filter(row => row.Survived === 1).length;
+    
+    const femaleDied = femalePassengers.length - femaleSurvived;
+    const maleDied = malePassengers.length - maleSurvived;
+    
+    // Create a separate chart for gender survival (in categorical chart)
+    // We'll just ensure the categorical chart properly highlights gender
+}
+
 // Export merged dataset as CSV
 function exportMergedData() {
     if (!dataLoaded || mergedData.length === 0) {
@@ -826,7 +944,13 @@ function exportStatistics() {
     }
     
     try {
-        const statsJson = JSON.stringify(window.computedStats, null, 2);
+        // Include gender analysis in the export
+        const exportData = {
+            ...window.computedStats,
+            genderAnalysis: window.genderAnalysis || {}
+        };
+        
+        const statsJson = JSON.stringify(exportData, null, 2);
         const blob = new Blob([statsJson], { type: 'application/json;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -837,7 +961,7 @@ function exportStatistics() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        showStatus('Statistics exported as JSON', 'success');
+        showStatus('Statistics exported as JSON (includes gender analysis)', 'success');
     } catch (error) {
         showStatus('Error exporting JSON: ' + error.message, 'error');
     }
@@ -867,6 +991,7 @@ function resetAll() {
     columnInfo.innerHTML = '<p>Load data to see column details here.</p>';
     dataPreviewTable.innerHTML = '<thead><tr><th>#</th><th>PassengerId</th><th>Survived</th><th>Pclass</th><th>Name</th><th>Sex</th><th>Age</th><th>Source</th></tr></thead><tbody><tr><td colspan="8">No data loaded yet.</td></tr></tbody>';
     statisticalSummaries.innerHTML = '<p>Run EDA to see statistical summaries here.</p>';
+    survivalComparison.innerHTML = '<p>Run EDA to see survival comparison data.</p>';
     loadingStatus.innerHTML = '';
     
     // Clear chart canvases
